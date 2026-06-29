@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>Puter — Text → Image</title>
+  <script src="https://js.puter.com/v2/"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
+    textarea { width: 100%; box-sizing: border-box; }
+    select, button { margin: 4px 2px; padding: 6px 12px; }
+    #out img { max-width: 100%; margin-top: 1rem; border-radius: 8px; }
+    #err { color: #c00; white-space: pre-wrap; }
+    .badge { font-size: 0.75em; color: #888; }
+  </style>
+</head>
+<body>
+  <h2>Puter — Text → Image</h2>
+
+  <button onclick="login()">🔑 Zaloguj</button>
+  <span id="loginStatus" class="badge"></span>
+  <hr>
+
+  <textarea id="prompt" rows="3">a miniature city built from cardboard and bottle caps, glowing at night, cinematic</textarea>
+
+  <br>
+  <label>Model:
+    <select id="model">
+      <option value="black-forest-labs/FLUX.1-schnell">FLUX.1-schnell — szybki (black-forest-labs)</option>
+      <option value="stabilityai/stable-diffusion-xl-base-1.0">Stable Diffusion XL (stabilityai)</option>
+      <option value="flux-schnell">flux-schnell — alias krótki</option>
+    </select>
+  </label>
+  <br><br>
+
+  <button onclick="gen()">🎨 Generuj</button>
+  <div id="out"></div>
+  <pre id="err"></pre>
+
+  <script>
+    function showErr(e) {
+      const msg = e?.error?.message || e?.message || e?.error || e;
+      document.getElementById('err').textContent =
+        '❌ ' + (typeof msg === 'object' ? JSON.stringify(msg, null, 2) : msg);
+      console.error('Puter error:', e);
+    }
+
+    async function login() {
+      try {
+        await puter.auth.signIn();
+        document.getElementById('loginStatus').textContent = '✅ zalogowano';
+        document.getElementById('err').textContent = '';
+      } catch (e) { showErr(e); }
+    }
+
+    async function gen() {
+      const out   = document.getElementById('out');
+      const err   = document.getElementById('err');
+      const prompt = document.getElementById('prompt').value.trim();
+      const model  = document.getElementById('model').value;
+      err.textContent = '';
+      out.innerHTML = `<p>⏳ Generuję z modelem <b>${model}</b>…</p>`;
+      try {
+        const img = await puter.ai.txt2img(prompt, { model });
+        out.innerHTML = '';
+        img.style.maxWidth = '100%';
+        out.appendChild(img);
+      } catch (e) {
+        out.innerHTML = '';
+        showErr(e);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!-- Text-to-Speech + lista silników przez puter.js — bez klucza API. -->
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>Puter — TTS</title>
+  <script src="https://js.puter.com/v2/"></script>
+</head>
+<body>
+  <h2>Puter — Text → Speech (PL)</h2>
+  <input id="text" size="50" value="Cześć, to jest test polskiej mowy.">
+  <br><br>
+
+  <label>Głos:
+    <select id="voice">
+      <option value="Ewa">Ewa (PL, kobieta, standard)</option>
+      <option value="Maja">Maja (PL, kobieta, standard)</option>
+      <option value="Jacek">Jacek (PL, mężczyzna, standard)</option>
+      <option value="Jan">Jan (PL, mężczyzna, standard)</option>
+      <option value="Ola">Ola (PL, kobieta, neural)</option>
+    </select>
+  </label>
+
+  <label>Silnik:
+    <select id="engine">
+      <option value="standard">standard</option>
+      <option value="neural">neural</option>
+    </select>
+  </label>
+
+  <button onclick="speak()">Mów</button>
+  <button onclick="listEngines()">Lista silników</button>
+  <pre id="out"></pre>
+
+  <script>
+    function showErr(e) {
+      const msg = e?.error?.message || e?.message || e?.error || e;
+      document.getElementById('out').textContent =
+        '❌ ' + (typeof msg === 'object' ? JSON.stringify(msg, null, 2) : msg);
+      console.error('Puter TTS error:', e);
+    }
+
+    async function speak() {
+      const out = document.getElementById('out');
+      const text = document.getElementById('text').value;
+      const voice = document.getElementById('voice').value;
+      const engine = document.getElementById('engine').value;
+      out.textContent = '... synteza ...';
+      try {
+        // Jawnie wymuszamy polski: language pl-PL + polski głos Polly
+        const audio = await puter.ai.txt2speech(text, {
+          voice: voice,
+          engine: engine,
+          language: 'pl-PL',
+        });
+        audio.play();
+        out.textContent = `▶ odtwarzam (głos: ${voice}, silnik: ${engine}, pl-PL)`;
+      } catch (e) {
+        showErr(e);
+      }
+    }
+
+    async function listEngines() {
+      const out = document.getElementById('out');
+      try {
+        const engines = await puter.ai.txt2speech.listEngines('openai');
+        out.textContent = 'Silniki OpenAI TTS:\n' +
+          engines.map(e => `  ${e.id} - ${e.name}`).join('\n');
+      } catch (e) {
+        showErr(e);
+      }
+    }
+  </script>
+</body>
+</html>

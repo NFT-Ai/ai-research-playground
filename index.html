@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>AI Research Playground</title>
+<script src="https://js.puter.com/v2/"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+header { padding: 1.1rem 2rem; border-bottom: 1px solid #1e2535; display: flex; align-items: center; gap: 1rem; }
+header h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
+.hbtn { margin-left: auto; background: #1e2535; border: 1px solid #2d3448; color: #64748b; border-radius: 8px; padding: .3rem .8rem; font-size: .75rem; cursor: pointer; }
+.hbtn:hover { color: #e2e8f0; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: .6rem; padding: 1.1rem 2rem .4rem; }
+.card { background: #1a1f2e; border: 1px solid #2d3448; border-radius: 10px; padding: .8rem .9rem; cursor: pointer; transition: border-color .15s; user-select: none; }
+.card:hover, .card.active { border-color: #4f6ef7; }
+.card.add-card { border-style: dashed; border-color: #2d3448; }
+.card.add-card:hover { border-color: #4f6ef7; }
+.badge { display: inline-block; font-size: .6rem; font-weight: 700; padding: 2px 6px; border-radius: 99px; margin-bottom: .3rem; text-transform: uppercase; letter-spacing: .4px; }
+.ok   { background: #14532d; color: #4ade80; }
+.warn { background: #422006; color: #fb923c; }
+.lock { background: #1e1b4b; color: #818cf8; }
+.dim  { background: #1e2535; color: #475569; }
+.card .name { font-weight: 600; font-size: .88rem; margin-bottom: .15rem; }
+.card .desc { font-size: .7rem; color: #64748b; line-height: 1.3; }
+
+main { padding: 1.1rem 2rem 2rem; }
+.panel { display: none; }
+.panel.active { display: block; }
+.panel > h2 { font-size: 1rem; font-weight: 700; margin-bottom: .9rem; }
+
+label { font-size: .78rem; color: #94a3b8; display: block; margin-bottom: .2rem; }
+.field { margin-bottom: .75rem; }
+textarea, input[type=text], input[type=password], select {
+  background: #1a1f2e; border: 1px solid #2d3448; border-radius: 8px;
+  color: #e2e8f0; padding: .48rem .7rem; font-size: .87rem; outline: none; transition: border-color .15s;
+}
+textarea:focus, input:focus, select:focus { border-color: #4f6ef7; }
+textarea { width: 100%; resize: vertical; }
+input[type=text], input[type=password] { width: 100%; }
+select { width: 100%; }
+
+.sel-row { display: flex; gap: .4rem; }
+.sel-row select { flex: 1; }
+.add-btn { background: #1e2535; border: 1px solid #2d3448; color: #64748b; border-radius: 8px; padding: .48rem .6rem; font-size: .9rem; cursor: pointer; flex-shrink: 0; transition: all .15s; }
+.add-btn:hover { background: #4f6ef7; color: #fff; border-color: #4f6ef7; }
+.add-form { display: none; flex-direction: row; gap: .4rem; margin-top: .4rem; }
+.add-form input { flex: 1; font-size: .82rem; }
+
+button { background: #4f6ef7; color: #fff; border: none; border-radius: 8px; padding: .48rem 1.1rem; font-size: .84rem; font-weight: 600; cursor: pointer; transition: background .15s; }
+button:hover { background: #6480ff; }
+button.sec { background: #1e2535; color: #94a3b8; border: 1px solid #2d3448; }
+button.sec:hover { background: #2d3448; color: #e2e8f0; }
+button.sm { padding: .35rem .7rem; font-size: .78rem; }
+.row { display: flex; gap: .45rem; align-items: center; flex-wrap: wrap; }
+
+.subtabs { display: flex; gap: .4rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.subtab { background: #1a1f2e; border: 1px solid #2d3448; border-radius: 8px; padding: .38rem .85rem; font-size: .78rem; font-weight: 600; cursor: pointer; color: #64748b; transition: all .15s; }
+.subtab.active { background: #4f6ef7; border-color: #4f6ef7; color: #fff; }
+
+.out { background: #1a1f2e; border: 1px solid #2d3448; border-radius: 10px; padding: .85rem 1rem; margin-top: .85rem; font-size: .86rem; line-height: 1.6; min-height: 65px; white-space: pre-wrap; word-break: break-word; }
+.out img { max-width: 100%; border-radius: 8px; }
+.err { color: #f87171; } .ok-txt { color: #4ade80; } .muted { color: #475569; font-size: .77rem; }
+a.dl { color: #818cf8; font-size: .82rem; text-decoration: none; }
+a.dl:hover { text-decoration: underline; }
+
+.info-box { background: #1a1f2e; border: 1px solid #2d3448; border-radius: 10px; padding: 1rem; max-width: 520px; }
+.info-box h3 { margin-bottom: .6rem; font-size: .93rem; }
+.info-box ul { padding-left: 1rem; font-size: .83rem; color: #94a3b8; line-height: 1.9; }
+.info-box li.done { color: #4ade80; } .info-box li.todo { color: #fb923c; }
+.info-box p { font-size: .8rem; color: #94a3b8; margin-top: .6rem; line-height: 1.5; }
+code { background: #0f1117; padding: 2px 5px; border-radius: 4px; font-size: .79rem; color: #a5b4fc; }
+
+/* CATALOG */
+.cat-section { margin-bottom: 1.25rem; }
+.cat-title { font-size: .78rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .5px; margin-bottom: .55rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chip { background: #1a1f2e; border: 1px solid #2d3448; border-radius: 8px; padding: .4rem .8rem; font-size: .78rem; cursor: pointer; transition: all .12s; display: flex; flex-direction: column; gap: .1rem; min-width: 120px; }
+.chip:hover { border-color: #4f6ef7; background: #1e2535; }
+.chip .cn { font-weight: 600; font-size: .82rem; }
+.chip .cd { font-size: .68rem; color: #64748b; }
+.chip .cf { font-size: .62rem; font-weight: 700; padding: 1px 5px; border-radius: 99px; display: inline-block; width: fit-content; }
+.cf.free { background: #14532d; color: #4ade80; }
+.cf.paid { background: #1e1b4b; color: #818cf8; }
+.cf.mixed { background: #422006; color: #fb923c; }
+
+/* CHECKBOX ROW */
+.chk-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.chk-row label { display: flex; align-items: center; gap: .3rem; font-size: .82rem; color: #94a3b8; cursor: pointer; }
+.chk-row input[type=checkbox] { accent-color: #4f6ef7; }
+
+/* ADD RESULT */
+.add-result { background: #1a1f2e; border: 1px solid #2d3448; border-radius: 10px; padding: .85rem; margin-top: .85rem; font-size: .82rem; line-height: 1.7; display: none; }
+.add-result.show { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧪 AI Research Playground</h1>
+  <button id="btn-refresh" class="hbtn" onclick="refreshAll()">⟳ Odśwież</button>
+</header>
+
+<div class="grid" id="platform-grid">
+  <div class="card active" data-platform="openrouter" onclick="show('openrouter',this)">
+    <div class="badge dim">…</div><div class="name">OpenRouter</div><div class="desc">Multi-model hub</div>
+  </div>
+  <div class="card" data-platform="elevenlabs" onclick="show('elevenlabs',this)">
+    <div class="badge dim">…</div><div class="name">ElevenLabs</div><div class="desc">TTS · 32 głosy · 🇵🇱</div>
+  </div>
+  <div class="card" data-platform="puter" onclick="show('puter',this)">
+    <div class="badge ok">✅ Działa</div><div class="name">Puter</div><div class="desc">Browser · chat/img/tts</div>
+  </div>
+  <div class="card" data-platform="alibaba" onclick="openBuiltinDynamic('alibaba','AlibabaCloud','al_key',this)">
+    <div class="badge dim">…</div><div class="name">AlibabaCloud</div><div class="desc">Qwen · wideo</div>
+  </div>
+  <div class="card" data-platform="together" onclick="openBuiltinDynamic('together','TogetherAI','tg_key',this)">
+    <div class="badge dim">…</div><div class="name">TogetherAI</div><div class="desc">FLUX · Llama</div>
+  </div>
+  <div class="card" data-platform="bytedance" onclick="show('bytedance',this)">
+    <div class="badge dim">⏳</div><div class="name">ByteDance/Ark</div><div class="desc">Doubao Seed3D</div>
+  </div>
+  <div class="card add-card" onclick="show('add',this)">
+    <div class="badge dim">Nowe</div><div class="name">＋ Dodaj</div><div class="desc">Nowa platforma</div>
+  </div>
+</div>
+
+<main>
+
+<!-- ══════ OPENROUTER ══════ -->
+<div id="panel-openrouter" class="panel active">
+  <h2>OpenRouter — Chat</h2>
+  <div class="field">
+    <label>API Key</label>
+    <div class="row">
+      <input type="password" id="or-key" placeholder="sk-or-v1-…" style="flex:1">
+      <button class="sec sm" onclick="orSaveKey()">Zapisz</button>
+      <button class="sec sm" onclick="orLoadModels()">⟳ Modele</button>
+    </div>
+    <div class="muted" id="or-key-st" style="margin-top:.2rem"></div>
+  </div>
+  <div class="field">
+    <label>Szukaj modelu <span id="or-models-count" class="muted"></span></label>
+    <input type="text" id="or-model-search" placeholder="np. gemma, claude, deepseek, :free…" oninput="orFilter(this.value)">
+  </div>
+  <div class="field">
+    <label>Model</label>
+    <div class="sel-row">
+      <select id="or-model" size="1">
+        <option value="google/gemma-4-31b-it:free">google/gemma-4-31b-it:free ✅</option>
+      </select>
+      <button class="add-btn" onclick="toggleAdd('or-model','models_or')" title="Dodaj model">＋</button>
+    </div>
+    <div class="add-form" id="add-or-model">
+      <input type="text" placeholder="np. openai/o3-mini">
+      <button class="sm" onclick="doAdd('or-model','models_or','add-or-model')">Dodaj</button>
+      <button class="sec sm" onclick="hideAdd('add-or-model')">✕</button>
+    </div>
+  </div>
+  <div class="field">
+    <label>Prompt</label>
+    <textarea id="or-prompt" rows="3">Cześć! Odpowiedz krótko po polsku: czym jesteś?</textarea>
+  </div>
+  <div class="row">
+    <button onclick="orChat()">▶ Wyślij</button>
+    <button class="sec sm" onclick="clearOut('or-out')">Wyczyść</button>
+  </div>
+  <div class="out" id="or-out"><span class="muted">Tutaj pojawi się odpowiedź…</span></div>
+</div>
+
+<!-- ══════ ELEVENLABS ══════ -->
+<div id="panel-elevenlabs" class="panel">
+  <h2>ElevenLabs — TTS</h2>
+  <div class="field">
+    <label>API Key</label>
+    <div class="row">
+      <input type="password" id="el-key" placeholder="sk_…" style="flex:1">
+      <button class="sec sm" onclick="elSaveKey()">Zapisz</button>
+      <button class="sec sm" onclick="elLoadVoices()">⟳ Głosy</button>
+    </div>
+    <div class="muted" id="el-key-st" style="margin-top:.2rem"></div>
+  </div>
+  <div class="field">
+    <label>Głos <span id="el-voice-st" class="muted"></span></label>
+    <select id="el-voice"><option value="">— ładuję głosy… —</option></select>
+  </div>
+  <div class="field">
+    <label>Model</label>
+    <div class="sel-row">
+      <select id="el-model">
+        <option value="eleven_multilingual_v2">eleven_multilingual_v2 — najlepsza jakość</option>
+        <option value="eleven_turbo_v2_5">eleven_turbo_v2_5 — szybki</option>
+        <option value="eleven_flash_v2_5">eleven_flash_v2_5 — najszybszy / najtańszy</option>
+      </select>
+      <button class="add-btn" onclick="toggleAdd('el-model','models_el')" title="Dodaj model">＋</button>
+    </div>
+    <div class="add-form" id="add-el-model">
+      <input type="text" placeholder="np. eleven_monolingual_v1">
+      <button class="sm" onclick="doAdd('el-model','models_el','add-el-model')">Dodaj</button>
+      <button class="sec sm" onclick="hideAdd('add-el-model')">✕</button>
+    </div>
+  </div>
+  <div class="field">
+    <label>Tekst</label>
+    <textarea id="el-text" rows="3">Cześć! To jest test polskiej syntezy mowy przez ElevenLabs.</textarea>
+  </div>
+  <div class="row">
+    <button onclick="elGenerate()">🔊 Generuj</button>
+    <button class="sec sm" onclick="clearOut('el-out')">Wyczyść</button>
+  </div>
+  <div class="out" id="el-out"><span class="muted">Tutaj pojawi się odtwarzacz…</span></div>
+</div>
+
+<!-- ══════ PUTER ══════ -->
+<div id="panel-puter" class="panel">
+  <h2>Puter — Playground</h2>
+  <div class="row" style="margin-bottom:.85rem">
+    <button class="sec sm" onclick="puterLogin()">🔑 Zaloguj</button>
+    <span id="puter-st" class="muted"></span>
+  </div>
+  <div class="subtabs">
+    <div class="subtab active" onclick="puterTab('chat',this)">💬 Chat</div>
+    <div class="subtab" onclick="puterTab('img',this)">🎨 Image</div>
+    <div class="subtab" onclick="puterTab('tts',this)">🔊 TTS PL</div>
+  </div>
+
+  <div id="pt-chat" class="pt-panel">
+    <div class="field">
+      <label>Model</label>
+      <div class="sel-row">
+        <select id="pc-model">
+          <option value="gpt-4o-mini">gpt-4o-mini</option>
+          <option value="gpt-4o">gpt-4o</option>
+          <option value="claude-3-5-sonnet">claude-3-5-sonnet</option>
+          <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+        </select>
+        <button class="add-btn" onclick="toggleAdd('pc-model','models_pc')">＋</button>
+      </div>
+      <div class="add-form" id="add-pc-model">
+        <input type="text" placeholder="np. gpt-4.1">
+        <button class="sm" onclick="doAdd('pc-model','models_pc','add-pc-model')">Dodaj</button>
+        <button class="sec sm" onclick="hideAdd('add-pc-model')">✕</button>
+      </div>
+    </div>
+    <div class="field"><label>Prompt</label><textarea id="pc-prompt" rows="3">Cześć! Odpowiedz krótko po polsku.</textarea></div>
+    <button onclick="puterChat()">▶ Wyślij</button>
+    <div class="out" id="pc-out"><span class="muted">Tutaj pojawi się odpowiedź…</span></div>
+  </div>
+
+  <div id="pt-img" class="pt-panel" style="display:none">
+    <div class="field">
+      <label>Model</label>
+      <div class="sel-row">
+        <select id="pi-model">
+          <option value="black-forest-labs/FLUX.1-schnell">FLUX.1-schnell ✅</option>
+          <option value="stabilityai/stable-diffusion-xl-base-1.0">Stable Diffusion XL ✅</option>
+          <option value="flux-schnell">flux-schnell (alias) ✅</option>
+        </select>
+        <button class="add-btn" onclick="toggleAdd('pi-model','models_pi')">＋</button>
+      </div>
+      <div class="add-form" id="add-pi-model">
+        <input type="text" placeholder="np. black-forest-labs/FLUX.1-dev">
+        <button class="sm" onclick="doAdd('pi-model','models_pi','add-pi-model')">Dodaj</button>
+        <button class="sec sm" onclick="hideAdd('add-pi-model')">✕</button>
+      </div>
+    </div>
+    <div class="field"><label>Prompt</label><textarea id="pi-prompt" rows="3">a miniature city from cardboard, glowing at night, cinematic</textarea></div>
+    <button onclick="puterImg()">🎨 Generuj</button>
+    <div class="out" id="pi-out"><span class="muted">Tutaj pojawi się obraz…</span></div>
+  </div>
+
+  <div id="pt-tts" class="pt-panel" style="display:none">
+    <div class="field"><label>Tekst</label><textarea id="ptt-text" rows="3">Cześć, to jest test polskiej syntezy mowy.</textarea></div>
+    <div class="field"><label>Głos (AWS Polly PL)</label>
+      <select id="ptt-voice">
+        <option value="Ewa">Ewa — kobieta, standard</option><option value="Maja">Maja — kobieta</option>
+        <option value="Jacek">Jacek — mężczyzna</option><option value="Jan">Jan — mężczyzna</option>
+        <option value="Ola">Ola — kobieta, neural</option>
+      </select>
+    </div>
+    <div class="field"><label>Silnik</label>
+      <select id="ptt-engine"><option value="standard">standard</option><option value="neural">neural (Ola)</option></select>
+    </div>
+    <div class="row">
+      <button onclick="puterTts()">🔊 Mów</button>
+      <button class="sec sm" onclick="listPuterEngines()">Lista silników</button>
+    </div>
+    <div class="out" id="ptt-out"><span class="muted">Status…</span></div>
+  </div>
+</div>
+
+<!-- ══════ ALIBABA ══════ -->
+<div id="panel-alibaba" class="panel"></div>
+
+<!-- ══════ TOGETHER ══════ -->
+<div id="panel-together" class="panel"></div>
+
+<!-- ══════ BYTEDANCE ══════ -->
+<div id="panel-bytedance" class="panel">
+  <h2>ByteDance / Volcengine Ark</h2>
+  <div class="info-box">
+    <h3>Doubao Seed3D 2.0</h3>
+    <ul>
+      <li class="todo">⏳ Konto Volcengine + weryfikacja tożsamości</li>
+      <li class="todo">⏳ ARK_API_KEY → <code>ByteDance/.env</code></li>
+    </ul>
+    <p>Uwaga: mainland China — może wymagać chińskiego dokumentu.<br>
+    <code>python ByteDance/seed3d/generate_3d.py "opis"</code></p>
+  </div>
+</div>
+
+<!-- ══════ DODAJ PLATFORMĘ ══════ -->
+<div id="panel-add" class="panel">
+  <h2>＋ Dodaj nową platformę</h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:720px">
+    <div>
+      <div class="field">
+        <label>Nazwa platformy</label>
+        <input type="text" id="new-name" placeholder="np. Groq" oninput="autoKeyVar()">
+        <div class="muted" id="new-keyvar" style="margin-top:.2rem"></div>
+      </div>
+      <div class="field">
+        <label>API Base URL</label>
+        <input type="text" id="new-url" placeholder="https://api.groq.com/openai/v1">
+      </div>
+      <div class="field">
+        <label>Klucz API (opcjonalnie — można dodać później do .env)</label>
+        <input type="password" id="new-key" placeholder="klucz…">
+      </div>
+      <div class="field">
+        <label>Format API</label>
+        <select id="new-compat">
+          <option value="openai">OpenAI-compatible (generuje chat.py + list_models.py)</option>
+          <option value="custom">Własny format (tylko README + .env)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Typy modeli</label>
+        <div class="chk-row">
+          <label><input type="checkbox" name="types" value="text" checked> Tekst</label>
+          <label><input type="checkbox" name="types" value="image"> Obraz</label>
+          <label><input type="checkbox" name="types" value="video"> Wideo</label>
+          <label><input type="checkbox" name="types" value="audio"> Audio</label>
+        </div>
+      </div>
+      <button onclick="addProvider()">📁 Utwórz folder i strukturę</button>
+    </div>
+    <div>
+      <div class="add-result" id="add-result"></div>
+    </div>
+  </div>
+
+  <hr style="border-color:#1e2535;margin:1.5rem 0">
+  <h3 style="font-size:.88rem;font-weight:700;margin-bottom:.9rem;color:#94a3b8">💡 Co można dodać — kliknij aby wypełnić formularz</h3>
+
+  <div id="catalog"></div>
+</div>
+
+</main>
+
+<script>
+// ─────────────────────── CATALOG DATA ────────────────────────────────────────
+const CAT = {
+  '🔤 Tekst / LLM': [
+    { name:'Groq',         url:'https://api.groq.com/openai/v1',                      tier:'free',  note:'Ultra-fast · Llama/DeepSeek/Gemma · Free tier',    types:['text'] },
+    { name:'Anthropic',    url:'https://api.anthropic.com/v1',                         tier:'paid',  note:'Claude 4 Opus/Sonnet · native API',                 types:['text'] },
+    { name:'OpenAI',       url:'https://api.openai.com/v1',                            tier:'paid',  note:'GPT-5.5 · DALL-E · Whisper · TTS · Sora',           types:['text','image','audio'] },
+    { name:'Gemini',       url:'https://generativelanguage.googleapis.com/v1beta',     tier:'mixed', note:'Gemini 2.5 Pro · 1M ctx · Free tier · Veo video',   types:['text','image','video'] },
+    { name:'MistralAI',    url:'https://api.mistral.ai/v1',                            tier:'mixed', note:'EU provider · Codestral · La Plateforme',            types:['text'] },
+    { name:'xAI',          url:'https://api.x.ai/v1',                                 tier:'paid',  note:'Grok-3 · OpenAI-compatible',                        types:['text'] },
+    { name:'Perplexity',   url:'https://api.perplexity.ai',                            tier:'paid',  note:'Search-augmented · Sonar Pro · live web',           types:['text'] },
+    { name:'Cohere',       url:'https://api.cohere.ai/v2',                             tier:'mixed', note:'Command R+ · Embeddings · RAG · Free tier',         types:['text'] },
+    { name:'AIMLAPI',      url:'https://api.aimlapi.com/v1',                           tier:'mixed', note:'300+ modeli · text/image/video/audio · agregator',  types:['text','image','video','audio'] },
+    { name:'SiliconFlow',  url:'https://api.siliconflow.cn/v1',                        tier:'mixed', note:'Tani/szybki · Qwen/DeepSeek/FLUX · CN provider',    types:['text','image'] },
+    { name:'FireworksAI',  url:'https://api.fireworks.ai/inference/v1',                tier:'mixed', note:'Fast inference · Llama/Mixtral · Function calling',  types:['text'] },
+    { name:'MiniMax',      url:'https://api.minimax.chat/v1',                          tier:'paid',  note:'MiniMax-M1 · Hailuo video · TTS',                   types:['text','video','audio'] },
+    { name:'Moonshot',     url:'https://api.moonshot.cn/v1',                           tier:'paid',  note:'Kimi · 128K ctx · CN provider',                     types:['text'] },
+    { name:'Cerebras',     url:'https://api.cerebras.ai/v1',                           tier:'mixed', note:'Fastest inference on hardware · Llama 3.3 70B',      types:['text'] },
+  ],
+  '🎨 Obraz': [
+    { name:'BlackForestLabs', url:'https://api.bfl.ml/v1',                             tier:'paid',  note:'FLUX.1 Pro/Dev native API · najlepsza jakość',      types:['image'] },
+    { name:'StabilityAI',  url:'https://api.stability.ai',                             tier:'paid',  note:'SDXL · SD3.5 · Stable Video · Stable Audio',        types:['image','video','audio'] },
+    { name:'FalAI',        url:'https://fal.run',                                      tier:'paid',  note:'Ultra-fast FLUX · Kling · wideo · async queue',      types:['image','video'] },
+    { name:'Replicate',    url:'https://api.replicate.com/v1',                         tier:'paid',  note:'1000+ modeli · SDXL/FLUX/Llama/Whisper/MusicGen',   types:['image','video','audio'] },
+    { name:'Ideogram',     url:'https://api.ideogram.ai',                              tier:'paid',  note:'Tekst w obrazach · logo · design',                   types:['image'] },
+    { name:'Recraft',      url:'https://external.api.recraft.ai',                      tier:'paid',  note:'Wektory · SVG · ikony · branding',                  types:['image'] },
+    { name:'NovitaAI',     url:'https://api.novita.ai/v3/openai',                      tier:'paid',  note:'SD/FLUX/LLM/TTS · tanie hosting',                   types:['image','text','audio'] },
+    { name:'LeonardoAI',   url:'https://cloud.leonardo.ai/api/rest/v1',                tier:'mixed', note:'PhotoReal · Alchemy · Motion video · Free tier',    types:['image','video'] },
+  ],
+  '🎬 Wideo': [
+    { name:'RunwayML',     url:'https://api.dev.runwayml.com/v1',                      tier:'paid',  note:'Gen-3 Alpha · Gen-4 Turbo · text/image→video',      types:['video'] },
+    { name:'LumaAI',       url:'https://api.lumalabs.ai/dream-machine/v1',             tier:'paid',  note:'Dream Machine · Ray2 · foto→video',                 types:['video'] },
+    { name:'KlingAI',      url:'https://api.klingai.com',                              tier:'paid',  note:'Kling 2.0 · 1080p · 10s · CN provider',             types:['video'] },
+    { name:'PikaAI',       url:'https://api.pika.art/v1',                              tier:'paid',  note:'Pika 2.1 · pikaffects',                              types:['video'] },
+    { name:'HailuoAI',     url:'https://api.minimaxi.chat/v1',                         tier:'paid',  note:'MiniMax Hailuo · video 6s',                         types:['video'] },
+  ],
+  '🔊 Audio / TTS / STT': [
+    { name:'Deepgram',     url:'https://api.deepgram.com/v1',                          tier:'mixed', note:'Nova-3 STT · Aura-2 TTS · real-time · Free tier',   types:['audio'] },
+    { name:'AssemblyAI',   url:'https://api.assemblyai.com',                           tier:'mixed', note:'STT · diaryzacja · summarize · Free tier',           types:['audio'] },
+    { name:'Cartesia',     url:'https://api.cartesia.ai',                              tier:'paid',  note:'Sonic · <80ms latency · streaming TTS',             types:['audio'] },
+    { name:'PlayHT',       url:'https://api.play.ht/api/v2',                           tier:'paid',  note:'PlayDialog · klonowanie głosu',                     types:['audio'] },
+    { name:'FishAudio',    url:'https://api.fish.audio/v1',                            tier:'paid',  note:'44.1kHz · klonowanie · 50+ lang',                   types:['audio'] },
+    { name:'RimeAI',       url:'https://api.rime.ai/v1',                               tier:'paid',  note:'#1 Realtime TTS 2026 · <250ms · Arcana model',      types:['audio'] },
+    { name:'Speechmatics', url:'https://asr.api.speechmatics.com/v2',                  tier:'paid',  note:'STT · 50+ lang · live streaming',                   types:['audio'] },
+  ],
+  '🎵 Muzyka': [
+    { name:'Suno',         url:'https://api.suno.ai',                                  tier:'paid',  note:'Muzyka z tekstu · pełne piosenki z wokalem',        types:['audio'] },
+    { name:'Udio',         url:'https://www.udio.com/api',                             tier:'paid',  note:'Muzyka AI · wysokiej jakości',                      types:['audio'] },
+    { name:'MusicGen',     url:'https://api.replicate.com/v1',                         tier:'paid',  note:'Meta MusicGen · przez Replicate',                   types:['audio'] },
+  ],
+  '🔍 Embeddingi / RAG': [
+    { name:'VoyageAI',     url:'https://api.voyageai.com/v1',                          tier:'paid',  note:'voyage-3 · najlepsze embeddingi 2026',              types:['text'] },
+    { name:'Jina',         url:'https://api.jina.ai/v1',                               tier:'mixed', note:'Embeddingi + reranker + reader · Free tier',        types:['text'] },
+  ],
+};
+
+function buildCatalog() {
+  const el = document.getElementById('catalog');
+  el.innerHTML = Object.entries(CAT).map(([cat, items]) => `
+    <div class="cat-section">
+      <div class="cat-title">${cat}</div>
+      <div class="chips">
+        ${items.map(p => `
+          <div class="chip" onclick="prefill(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+            <span class="cf ${p.tier}">${p.tier === 'free' ? '✅ Free' : p.tier === 'mixed' ? '⚡ Free+Paid' : '💳 Paid'}</span>
+            <span class="cn">${p.name}</span>
+            <span class="cd">${p.note}</span>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function prefill(p) {
+  document.getElementById('new-name').value = p.name;
+  document.getElementById('new-url').value  = p.url;
+  document.querySelectorAll('[name=types]').forEach(cb => cb.checked = p.types.includes(cb.value));
+  autoKeyVar();
+  document.getElementById('new-name').focus();
+}
+
+// ─────────────────────── NAV ─────────────────────────────────────────────────
+function show(id, card) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if (card) card.classList.add('active');
+}
+
+// ─────────────────────── BADGES ──────────────────────────────────────────────
+function setBadge(platform, cls, txt) {
+  const el = document.querySelector(`[data-platform="${platform}"] .badge`);
+  if (el) { el.className = 'badge ' + cls; el.textContent = txt; }
+}
+
+// ─────────────────────── KEYS ────────────────────────────────────────────────
+async function initKeys() {
+  try {
+    const r = await fetch('/keys.json?' + Date.now());
+    if (r.ok) {
+      const k = await r.json();
+      if (k.openrouter) localStorage.setItem('or_key', k.openrouter);
+      if (k.elevenlabs) localStorage.setItem('el_key', k.elevenlabs);
+      if (k.together)   localStorage.setItem('tg_key', k.together);
+      if (k.alibaba)    localStorage.setItem('al_key', k.alibaba);
+      // dynamiczne platformy: klucz zapisz jako <name>_key
+      for (const [k2, v] of Object.entries(k)) {
+        if (!['openrouter','elevenlabs','together','alibaba','alibaba_url','bytedance'].includes(k2) && v)
+          localStorage.setItem(k2 + '_key', v);
+      }
+    }
+  } catch(e) {}
+  applyKeys();
+}
+
+async function refreshAll() {
+  const btn = document.getElementById('btn-refresh');
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+  try {
+    // 1. Wczytaj klucze na nowo
+    await initKeys();
+
+    // 2. Wyczyść cache dynamicznych dostawców
+    Object.keys(_dynProviders).forEach(k => delete _dynProviders[k]);
+
+    // 3. Przeładuj aktywny panel dynamiczny od razu (klucz bierze z .env przez API)
+    const active = document.querySelector('.panel.active[data-provider-name]');
+    if (active) {
+      const name = active.dataset.providerName;
+      delete active.dataset.loaded;
+      active.dataset.loaded = '1';
+      const pd = await loadDynamicProviderData(name);
+      await fillPanelWithChat(active, name, !!pd.key);
+    }
+
+    // 4. Zresetuj wbudowane panele (alibaba/together) żeby przeładowały przy kliknięciu
+    ['panel-alibaba','panel-together'].forEach(id => {
+      const p = document.getElementById(id);
+      if (p) delete p.dataset.loaded;
+    });
+  } finally {
+    if (btn) { btn.textContent = '⟳ Odśwież'; btn.disabled = false; }
+  }
+}
+
+function applyKeys() {
+  const OR = localStorage.getItem('or_key');
+  const EL = localStorage.getItem('el_key');
+  const TG = localStorage.getItem('tg_key');
+  const AL = localStorage.getItem('al_key');
+
+  if (OR) { document.getElementById('or-key').value = OR; document.getElementById('or-key-st').textContent = '✅ Klucz z keys.json'; setBadge('openrouter','ok','✅ Klucz'); orLoadModels(OR); }
+  else setBadge('openrouter','warn','⏳ Brak klucza');
+
+  if (EL) { document.getElementById('el-key').value = EL; document.getElementById('el-key-st').textContent = '✅ Klucz z keys.json'; setBadge('elevenlabs','ok','✅ Klucz'); elLoadVoices(EL); }
+  else setBadge('elevenlabs','warn','⏳ Brak klucza');
+
+  setBadge('alibaba', AL ? 'lock' : 'dim', AL ? '🔒 Weryfikacja' : '⬜ Brak klucza');
+
+  setBadge('together', TG ? 'ok' : 'dim', TG ? '✅ Klucz' : '⏳ Brak klucza');
+}
+
+// ─────────────────────── CUSTOM MODELS ───────────────────────────────────────
+function toggleAdd(selId, storeKey) {
+  const form = document.getElementById('add-' + selId);
+  if (form) form.style.display = form.style.display === 'flex' ? 'none' : 'flex';
+}
+function hideAdd(formId) { document.getElementById(formId).style.display = 'none'; }
+function doAdd(selId, storeKey, formId) {
+  const form = document.getElementById(formId);
+  const input = form.querySelector('input');
+  const val = input.value.trim();
+  if (!val) return;
+  const sel = document.getElementById(selId);
+  if (![...sel.options].some(o => o.value === val)) {
+    sel.appendChild(new Option(val + ' [custom]', val, true, true));
+    const saved = JSON.parse(localStorage.getItem(storeKey) || '[]');
+    if (!saved.includes(val)) { saved.push(val); localStorage.setItem(storeKey, JSON.stringify(saved)); }
+  } else sel.value = val;
+  input.value = ''; form.style.display = 'none';
+}
+function loadCustomModels() {
+  [['or-model','models_or'],['el-model','models_el'],['pc-model','models_pc'],['pi-model','models_pi']].forEach(([selId, storeKey]) => {
+    const sel = document.getElementById(selId);
+    JSON.parse(localStorage.getItem(storeKey)||'[]').forEach(val => {
+      if (![...sel.options].some(o => o.value === val)) sel.appendChild(new Option(val+' [custom]', val));
+    });
+  });
+}
+
+// ─────────────────────── OPENROUTER ──────────────────────────────────────────
+let _orModels = [];
+
+function orSaveKey() {
+  const k = document.getElementById('or-key').value.trim();
+  if (k) { localStorage.setItem('or_key', k); document.getElementById('or-key-st').textContent = '✅ Zapisano'; setBadge('openrouter','ok','✅ Klucz'); orLoadModels(k); }
+}
+
+function fmtCtx(n) {
+  if (!n) return '?';
+  if (n >= 1000000) return (n/1000000).toFixed(0)+'M';
+  if (n >= 1000)    return Math.round(n/1000)+'K';
+  return n;
+}
+function fmtPrice(p) {
+  const f = parseFloat(p);
+  if (!f) return 'free';
+  const per1M = f * 1e6;
+  return per1M < 0.01 ? `$${per1M.toFixed(4)}/1M` : `$${per1M.toFixed(2)}/1M`;
+}
+
+async function orLoadModels(key) {
+  key = key || localStorage.getItem('or_key') || document.getElementById('or-key').value.trim();
+  if (!key) return;
+  const st = document.getElementById('or-models-count');
+  st.textContent = '⏳ ładuję…';
+  try {
+    const r = await fetch('https://openrouter.ai/api/v1/models', {
+      headers: { 'Authorization': `Bearer ${key}` }
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    _orModels = (await r.json()).data.sort((a, b) => a.id.localeCompare(b.id));
+    st.textContent = `(${_orModels.length} modeli)`;
+    orRender(_orModels);
+  } catch(e) {
+    st.textContent = '❌ ' + e.message;
+  }
+}
+
+function orFilter(q) {
+  q = q.toLowerCase().trim();
+  const filtered = q ? _orModels.filter(m =>
+    m.id.toLowerCase().includes(q) || (m.name||'').toLowerCase().includes(q)
+  ) : _orModels;
+  document.getElementById('or-models-count').textContent = `(${filtered.length} / ${_orModels.length})`;
+  orRender(filtered);
+}
+
+function orRender(models) {
+  const sel = document.getElementById('or-model');
+  const prev = sel.value;
+
+  const isFree = m => String(m.pricing?.prompt) === '0' || parseFloat(m.pricing?.prompt) === 0;
+  const free = models.filter(isFree);
+  const paid = models.filter(m => !isFree(m));
+
+  // group paid by provider prefix
+  const byProv = {};
+  paid.forEach(m => {
+    const prov = m.id.split('/')[0];
+    (byProv[prov] = byProv[prov] || []).push(m);
+  });
+
+  sel.innerHTML = '';
+
+  if (free.length) {
+    const g = document.createElement('optgroup');
+    g.label = `✅ Free (${free.length})`;
+    free.forEach(m => {
+      g.appendChild(new Option(
+        `${m.id}  · ctx:${fmtCtx(m.context_length)}`,
+        m.id
+      ));
+    });
+    sel.appendChild(g);
+  }
+
+  Object.entries(byProv).sort(([a],[b]) => a.localeCompare(b)).forEach(([prov, ms]) => {
+    const g = document.createElement('optgroup');
+    g.label = `${prov}  (${ms.length})`;
+    ms.forEach(m => {
+      g.appendChild(new Option(
+        `${m.id}  · ctx:${fmtCtx(m.context_length)} · ${fmtPrice(m.pricing?.prompt)}`,
+        m.id
+      ));
+    });
+    sel.appendChild(g);
+  });
+
+  // restore prev selection or default
+  if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+
+  // restore custom models on top
+  JSON.parse(localStorage.getItem('models_or')||'[]').forEach(val => {
+    if (![...sel.options].some(o => o.value === val))
+      sel.insertBefore(new Option(val+' [custom]', val), sel.firstChild);
+  });
+}
+
+async function orChat() {
+  const key    = localStorage.getItem('or_key') || document.getElementById('or-key').value.trim();
+  const model  = document.getElementById('or-model').value;
+  const prompt = document.getElementById('or-prompt').value.trim();
+  const out    = document.getElementById('or-out');
+  if (!key) { out.innerHTML='<span class="err">❌ Wklej API Key.</span>'; return; }
+  out.innerHTML='<span class="muted">⏳ Czekam…</span>';
+  try {
+    const r = await fetch('https://openrouter.ai/api/v1/chat/completions',{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${key}`,'Content-Type':'application/json','HTTP-Referer':location.href},
+      body:JSON.stringify({model,messages:[{role:'user',content:prompt}]})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d?.error?.message||JSON.stringify(d));
+    const txt  = d.choices?.[0]?.message?.content||JSON.stringify(d);
+    const meta = d.usage?`\n\n[${d.model} · ${d.usage.total_tokens} tok · $${(d.usage.cost||0).toFixed(6)}]`:'';
+    out.textContent = txt + meta;
+  } catch(e) { out.innerHTML=`<span class="err">❌ ${e.message}</span>`; }
+}
+
+// ─────────────────────── ELEVENLABS ──────────────────────────────────────────
+const EL_BASE='https://api.elevenlabs.io/v1';
+const PL_NAMES=['PL','Michał','Piotr','Aleksandra','kAImil','Bartlomiej','WKW','Lubaszewski','Fronczewski','Konwersacyjny','żebrak'];
+const isPL = n => PL_NAMES.some(x => n.includes(x));
+
+function elSaveKey() {
+  const k = document.getElementById('el-key').value.trim();
+  if (k) { localStorage.setItem('el_key',k); setBadge('elevenlabs','ok','✅ Klucz'); elLoadVoices(k); }
+}
+async function elLoadVoices(key) {
+  key = key||localStorage.getItem('el_key')||document.getElementById('el-key').value.trim();
+  const st = document.getElementById('el-voice-st');
+  if (!key) { st.textContent='❌ brak klucza'; return; }
+  st.textContent='⏳ ładuję…';
+  try {
+    const r = await fetch(`${EL_BASE}/voices`,{headers:{'xi-api-key':key}});
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    const voices = (await r.json()).voices;
+    const sel = document.getElementById('el-voice'); sel.innerHTML='';
+    const pl    = voices.filter(v=>isPL(v.name)).sort((a,b)=>a.name.localeCompare(b.name));
+    const other = voices.filter(v=>!isPL(v.name)).sort((a,b)=>a.name.localeCompare(b.name));
+    if (pl.length) { const g=document.createElement('optgroup'); g.label='🇵🇱 Polskie głosy'; pl.forEach(v=>g.appendChild(new Option(v.name,v.voice_id))); sel.appendChild(g); }
+    const g2=document.createElement('optgroup'); g2.label='🌍 Pozostałe';
+    other.forEach(v=>g2.appendChild(new Option(`${v.name} [${v.category}]`,v.voice_id)));
+    sel.appendChild(g2);
+    const m=voices.find(v=>v.name.includes('Michał')); if(m) sel.value=m.voice_id;
+    st.textContent=`✅ ${voices.length} głosów`;
+  } catch(e) { st.textContent='❌ '+e.message; }
+}
+async function elGenerate() {
+  const key=localStorage.getItem('el_key')||document.getElementById('el-key').value.trim();
+  const vid=document.getElementById('el-voice').value;
+  const mdl=document.getElementById('el-model').value;
+  const txt=document.getElementById('el-text').value.trim();
+  const out=document.getElementById('el-out');
+  if(!key||!vid){out.innerHTML='<span class="err">❌ Brak klucza lub głosu.</span>';return;}
+  out.innerHTML='<span class="muted">⏳ Generuję audio…</span>';
+  try {
+    const r=await fetch(`${EL_BASE}/text-to-speech/${vid}`,{
+      method:'POST', headers:{'xi-api-key':key,'Content-Type':'application/json'},
+      body:JSON.stringify({text:txt,model_id:mdl,voice_settings:{stability:.5,similarity_boost:.75}})
+    });
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e?.detail?.message||`HTTP ${r.status}`);}
+    const blob=await r.blob(), url=URL.createObjectURL(blob);
+    new Audio(url).play();
+    out.innerHTML=`<span class="ok-txt">▶ Odtwarzam</span><br><a class="dl" href="${url}" download="el_${Date.now()}.mp3">⬇️ Pobierz MP3</a>`;
+  } catch(e){out.innerHTML=`<span class="err">❌ ${e.message}</span>`;}
+}
+
+// ─────────────────────── PUTER ───────────────────────────────────────────────
+function puterTab(t,btn){document.querySelectorAll('.pt-panel').forEach(p=>p.style.display='none');document.querySelectorAll('.subtab').forEach(s=>s.classList.remove('active'));document.getElementById('pt-'+t).style.display='block';if(btn)btn.classList.add('active');}
+async function puterLogin(){try{await puter.auth.signIn();document.getElementById('puter-st').textContent='✅ zalogowano';}catch(e){document.getElementById('puter-st').textContent='❌ '+(e?.message||e);}}
+function puterErr(id,e){const m=e?.error?.message||e?.message||e?.error||String(e);document.getElementById(id).innerHTML=`<span class="err">❌ ${typeof m==='object'?JSON.stringify(m,null,2):m}</span>`;}
+async function puterChat(){const out=document.getElementById('pc-out');out.innerHTML='<span class="muted">⏳…</span>';try{const r=await puter.ai.chat(document.getElementById('pc-prompt').value,{model:document.getElementById('pc-model').value});out.textContent=r?.message?.content??r;}catch(e){puterErr('pc-out',e);}}
+async function puterImg(){const out=document.getElementById('pi-out');const m=document.getElementById('pi-model').value;out.innerHTML=`<span class="muted">⏳ Generuję (${m})…</span>`;try{const img=await puter.ai.txt2img(document.getElementById('pi-prompt').value,{model:m});out.innerHTML='';img.style.maxWidth='100%';img.style.borderRadius='8px';out.appendChild(img);}catch(e){puterErr('pi-out',e);}}
+async function puterTts(){const out=document.getElementById('ptt-out');out.innerHTML='<span class="muted">⏳…</span>';try{const a=await puter.ai.txt2speech(document.getElementById('ptt-text').value,{voice:document.getElementById('ptt-voice').value,engine:document.getElementById('ptt-engine').value,language:'pl-PL'});a.play();out.innerHTML='<span class="ok-txt">▶ Odtwarzam (pl-PL)</span>';}catch(e){puterErr('ptt-out',e);}}
+async function listPuterEngines(){const out=document.getElementById('ptt-out');try{const e=await puter.ai.txt2speech.listEngines('openai');out.textContent='OpenAI TTS:\n'+e.map(x=>`  ${x.id} — ${x.name}`).join('\n');}catch(e){puterErr('ptt-out',e);}}
+
+// ─────────────────────── ADD PROVIDER ────────────────────────────────────────
+function autoKeyVar() {
+  const n = document.getElementById('new-name').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'_');
+  document.getElementById('new-keyvar').textContent = n ? `Zmienna: ${n}_API_KEY` : '';
+}
+
+async function addProvider() {
+  const name   = document.getElementById('new-name').value.trim();
+  const url    = document.getElementById('new-url').value.trim();
+  const key    = document.getElementById('new-key').value.trim();
+  const compat = document.getElementById('new-compat').value;
+  const types  = [...document.querySelectorAll('[name=types]:checked')].map(c=>c.value);
+  const res    = document.getElementById('add-result');
+
+  if (!name || !url) { res.className='add-result show'; res.innerHTML='<span class="err">❌ Wypełnij nazwę i URL.</span>'; return; }
+  res.className='add-result show'; res.innerHTML='<span class="muted">⏳ Tworzę strukturę…</span>';
+
+  try {
+    const r = await fetch('/api/add-provider',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name, url, key, compat, types})
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error);
+    res.innerHTML = `<span class="ok-txt">✅ Utworzono: ${name}/</span>\n\n` +
+      `<span class="muted">Pliki:\n${d.files.join('\n')}</span>\n\n` +
+      (key ? `<span class="ok-txt">Klucz zapisany w ${name}/.env</span>` : `<span class="muted">Klucz: dodaj ${d.key_var} do ${name}/.env\nPotem: python make_config.py</span>`);
+    // dodaj kartę do grida
+    addCardToGrid(name, !!key);
+  } catch(e) { res.innerHTML=`<span class="err">❌ ${e.message}</span>`; }
+}
+
+// Platformy wbudowane w HTML — nie duplikować
+const BUILTIN = new Set(['AlibabaCloud','ByteDance','elevenlabs','OpenRouter','Puter','TogetherAI','INNE']);
+
+function addCardToGrid(name, hasKey) {
+  if (document.querySelector(`[data-platform="${name.toLowerCase()}"]`)) return;
+  const grid = document.getElementById('platform-grid');
+  const addCard = grid.querySelector('.add-card');
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.platform = name.toLowerCase();
+  card.innerHTML = `<div class="badge ${hasKey?'ok':'dim'}">${hasKey?'✅ Klucz':'⏳ Brak klucza'}</div><div class="name">${name}</div><div class="desc">Platforma AI</div>`;
+  card.onclick = () => openDynamicProvider(name, hasKey, card);
+  grid.insertBefore(card, addCard);
+}
+
+// ── Cache danych dostawców (klucz, URL, modele) ─────────────────────────────
+const _dynProviders = {};
+
+async function loadDynamicProviderData(name) {
+  const slug = name.toLowerCase();
+  if (_dynProviders[slug]?.loaded) return _dynProviders[slug];
+  const r = await fetch('/api/provider/' + encodeURIComponent(name));
+  const d = await r.json();
+  if (!d.ok) throw new Error(d.error || 'Provider not found');
+  const pd = { ...d, slug, loaded: true, models: [] };
+  _dynProviders[slug] = pd;
+  if (pd.key && pd.base_url) {
+    try {
+      const mr = await fetch(`${pd.base_url}/models`, {
+        headers: { 'Authorization': `Bearer ${pd.key}` }
+      });
+      if (mr.ok) {
+        const mdata = await mr.json();
+        pd.models = (mdata.data || (Array.isArray(mdata) ? mdata : []))
+          .sort((a,b)=>(a.id||a.name||'').localeCompare(b.id||b.name||''));
+      }
+    } catch(e) { console.warn(name + ' models:', e); }
+  }
+  return pd;
+}
+
+function dynPopulateModels(slug, models) {
+  const sel = document.getElementById(`${slug}-model`);
+  const cnt = document.getElementById(`${slug}-model-count`);
+  if (!sel) return;
+  sel.innerHTML = '';
+  models.forEach(m => sel.appendChild(new Option(m.id||m.name, m.id||m.name)));
+  if (cnt) cnt.textContent = `(${models.length} modeli)`;
+}
+
+function dynFilter(slug, q) {
+  const pd = _dynProviders[slug];
+  if (!pd?.models?.length) return;
+  const fl = q ? pd.models.filter(m=>(m.id||m.name||'').toLowerCase().includes(q.toLowerCase())) : pd.models;
+  const sel = document.getElementById(`${slug}-model`);
+  const prev = sel.value;
+  sel.innerHTML = '';
+  fl.forEach(m => sel.appendChild(new Option(m.id||m.name, m.id||m.name)));
+  if ([...sel.options].some(o=>o.value===prev)) sel.value = prev;
+  const cnt = document.getElementById(`${slug}-model-count`);
+  if (cnt) cnt.textContent = `(${fl.length}/${pd.models.length})`;
+}
+
+const _dynAbort = {};
+
+function dynStop(slug) {
+  _dynAbort[slug]?.abort();
+  delete _dynAbort[slug];
+  const btn = document.getElementById(`${slug}-stop`);
+  if (btn) btn.style.display = 'none';
+}
+
+async function dynChat(slug) {
+  const pd = _dynProviders[slug];
+  const out = document.getElementById(`${slug}-out`);
+  const stopBtn = document.getElementById(`${slug}-stop`);
+  const model = document.getElementById(`${slug}-model`)?.value;
+  const prompt = document.getElementById(`${slug}-prompt`)?.value?.trim();
+
+  if (!pd?.key || !pd?.base_url) {
+    out.innerHTML = `<span class="err">❌ Brak klucza lub URL — sprawdź ${slug}/.env</span>`;
+    return;
+  }
+  if (!model || model.startsWith('⏳') || model.startsWith('—')) { out.innerHTML = '<span class="err">❌ Modele się jeszcze ładują lub brak modeli — wpisz ID modelu ręcznie w pole.</span>'; return; }
+  if (!prompt) { out.innerHTML = '<span class="err">❌ Wpisz pytanie.</span>'; return; }
+
+  dynStop(slug); // anuluj poprzedni request
+  const ctrl = new AbortController();
+  _dynAbort[slug] = ctrl;
+  if (stopBtn) stopBtn.style.display = '';
+
+  out.textContent = '';
+  let text = '', usage = null;
+
+  try {
+    const r = await fetch(`${pd.base_url}/chat/completions`, {
+      method: 'POST',
+      signal: ctrl.signal,
+      headers: { 'Authorization': `Bearer ${pd.key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, stream: true, messages: [{ role: 'user', content: prompt }] })
+    });
+
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err?.error?.message || JSON.stringify(err));
+    }
+
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (raw === '[DONE]') continue;
+        try {
+          const chunk = JSON.parse(raw);
+          const delta = chunk.choices?.[0]?.delta?.content;
+          if (delta) { text += delta; out.textContent = text; }
+          if (chunk.usage) usage = chunk.usage;
+          if (chunk.x_groq?.usage) usage = chunk.x_groq.usage; // Groq puts usage here
+        } catch { /* skip malformed chunk */ }
+      }
+    }
+
+    if (usage) {
+      const u = usage;
+      out.textContent = text + `\n\n[${model} · ${u.prompt_tokens??'?'}+${u.completion_tokens??'?'}=${u.total_tokens??'?'} tok]`;
+    }
+
+  } catch(e) {
+    if (e.name === 'AbortError') {
+      out.textContent = text + (text ? '\n\n[⛔ przerwano]' : '');
+    } else {
+      out.innerHTML = (text ? `<span>${text}</span>\n` : '') + `<span class="err">❌ ${e.message}</span>`;
+    }
+  } finally {
+    delete _dynAbort[slug];
+    if (stopBtn) stopBtn.style.display = 'none';
+  }
+}
+
+// Wspólna logika budowania UI czatu — używana zarówno dla nowych (createDynamicPanel)
+// jak i wbudowanych (openBuiltinDynamic) platform.
+async function fillPanelWithChat(panel, name, hasKey) {
+  panel.dataset.providerName = name;
+  const slug = name.toLowerCase();
+  if (hasKey) {
+    panel.innerHTML = `
+      <h2>${name}</h2>
+      <p class="muted" style="margin:-.3rem 0 .8rem">Platforma AI · OpenAI-compatible</p>
+      <div class="field">
+        <label>Szukaj modelu <span id="${slug}-model-count" class="muted">⏳ ładuję…</span></label>
+        <input type="text" id="${slug}-model-search" placeholder="np. llama, gemma…" oninput="dynFilter('${slug}', this.value)" style="margin-bottom:.4rem">
+        <select id="${slug}-model"><option>⏳ ładuję modele…</option></select>
+      </div>
+      <div class="field">
+        <label>Prompt</label>
+        <textarea id="${slug}-prompt" rows="3">Cześć! Odpowiedz krótko po polsku.</textarea>
+      </div>
+      <div class="row" style="margin:.6rem 0">
+        <button onclick="dynChat('${slug}')">▶ Wyślij</button>
+        <button id="${slug}-stop" class="sec" style="font-size:.8em;display:none" onclick="dynStop('${slug}')">■ Stop</button>
+        <button class="sec" style="font-size:.8em" onclick="clearOut('${slug}-out')">✕ Wyczyść</button>
+      </div>
+      <div class="out" id="${slug}-out"><span class="muted">Tutaj pojawi się odpowiedź…</span></div>`;
+    try {
+      const pd = await loadDynamicProviderData(name);
+      if (pd.models.length) {
+        dynPopulateModels(slug, pd.models);
+      } else {
+        const cnt = document.getElementById(`${slug}-model-count`);
+        const sel = document.getElementById(`${slug}-model`);
+        const srch = document.getElementById(`${slug}-model-search`);
+        if (srch) srch.style.display = 'none';
+        if (cnt) cnt.textContent = pd.key ? '(API nie zwróciło listy — wpisz ręcznie)' : '(brak klucza)';
+        if (sel) {
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.id = `${slug}-model`;
+          inp.placeholder = 'wpisz ID modelu, np. meta-llama/Llama-3.3-70B-Instruct-Turbo';
+          inp.style.cssText = 'width:100%;padding:.45rem .6rem;background:#0f1117;border:1px solid #2d3448;border-radius:6px;color:#e2e8f0;font-size:.85rem';
+          sel.replaceWith(inp);
+        }
+      }
+    } catch(e) {
+      const cnt = document.getElementById(`${slug}-model-count`);
+      if (cnt) cnt.textContent = '❌ ' + (e.message||e);
+    }
+  } else {
+    const keyVar = name.toUpperCase().replace(/[^A-Z0-9]/g,'_') + '_API_KEY';
+    panel.innerHTML = `
+      <h2>${name}</h2>
+      <div class="info-box">
+        <h3>Folder: ${name}/</h3>
+        <ul>
+          <li class="todo">⏳ Brak klucza — dodaj <code>${keyVar}</code> do <code>${name}/.env</code></li>
+          <li>Dokumentacja: <code>${name}/README.md</code></li>
+        </ul>
+        <p style="margin-top:.6rem">Po dodaniu klucza:<br>
+          <code>python make_config.py</code> → kliknij ⟳ Odśwież klucze</p>
+      </div>`;
+  }
+}
+
+async function createDynamicPanel(name, hasKey) {
+  const panelId = 'panel-' + name.toLowerCase();
+  if (document.getElementById(panelId)) return;
+  const panel = document.createElement('div');
+  panel.id = panelId;
+  panel.className = 'panel';
+  document.querySelector('main').appendChild(panel);
+  await fillPanelWithChat(panel, name, hasKey);
+}
+
+async function openDynamicProvider(name, hasKey, card) {
+  await createDynamicPanel(name, hasKey);
+  show(name.toLowerCase(), card);
+}
+
+// Dla wbudowanych kart (AlibabaCloud, TogetherAI) — wypełnia istniejący div panelu
+// przy pierwszym kliknięciu, potem tylko pokazuje.
+async function openBuiltinDynamic(panelId, providerName, keyLocalStorageKey, card) {
+  const panel = document.getElementById('panel-' + panelId);
+  if (panel && !panel.dataset.loaded) {
+    panel.dataset.loaded = '1';
+    const hasKey = !!localStorage.getItem(keyLocalStorageKey);
+    await fillPanelWithChat(panel, providerName, hasKey);
+  }
+  show(panelId, card);
+}
+
+async function loadDynamicProviders() {
+  try {
+    const [provRes, keysRes] = await Promise.all([
+      fetch('/api/providers'),
+      fetch('/keys.json?' + Date.now()).catch(() => null)
+    ]);
+    if (!provRes.ok) return;
+    const providers = await provRes.json();
+    const keys = keysRes?.ok ? await keysRes.json() : {};
+    providers.forEach(p => {
+      if (BUILTIN.has(p.name)) return;
+      const hasKey = p.has_env || !!keys[p.name.toLowerCase()];
+      addCardToGrid(p.name, hasKey);
+    });
+  } catch(e) { console.warn('loadDynamicProviders:', e); }
+}
+
+// ─────────────────────── UTILS ───────────────────────────────────────────────
+function clearOut(id){document.getElementById(id).innerHTML='<span class="muted">Wyczyszczono.</span>';}
+
+// ─────────────────────── INIT ────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  initKeys();
+  loadCustomModels();
+  buildCatalog();
+  loadDynamicProviders();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!-- Czat z LLM przez puter.js — bez klucza API (model "User Pays"). -->
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>Puter — Czat</title>
+  <script src="https://js.puter.com/v2/"></script>
+</head>
+<body>
+  <h2>Puter — Czat LLM</h2>
+  <input id="prompt" size="50" value="Czesc, kim jestes?">
+  <button onclick="send()">Wyślij</button>
+  <pre id="out"></pre>
+
+  <script>
+    async function send() {
+      const out = document.getElementById('out');
+      const prompt = document.getElementById('prompt').value;
+      out.textContent = '... myślę ...';
+      try {
+        const resp = await puter.ai.chat(prompt, { model: 'gpt-4o-mini' });
+        out.textContent = resp.message?.content ?? resp;
+      } catch (e) {
+        out.textContent = '❌ ' + e;
+      }
+    }
+  </script>
+</body>
+</html>
