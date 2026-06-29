@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Debata Modeli</title>
+<style>
+:root {
+  --bg:      #0D0D14;
+  --surface: #12121E;
+  --card-bg: #0F0F1A;
+  --border:  #1E1E32;
+  --text:    #E2E8F0;
+  --muted:   #64748B;
+  --accent:  #4F6EF7;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+header {
+  padding: 1.2rem 2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+header h1 { font-size: 1.15rem; font-weight: 700; white-space: nowrap; }
+header .sub { font-size: .8rem; color: var(--muted); }
+header a.back {
+  margin-left: auto;
+  font-size: .75rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+header a.back:hover { color: var(--text); }
+
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.75rem 2rem 4rem;
+}
+
+/* ── Question section ────────────────────────────────────────────────────── */
+.q-section { margin-bottom: 1.5rem; }
+
+textarea#q-input {
+  width: 100%;
+  min-height: 90px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font: inherit;
+  font-size: .95rem;
+  padding: .9rem 1rem;
+  resize: vertical;
+  margin-bottom: .75rem;
+  transition: border-color .15s;
+}
+textarea#q-input:focus { outline: none; border-color: var(--accent); }
+textarea#q-input::placeholder { color: var(--muted); }
+
+.btn-row { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: .55rem 1.3rem;
+  font: inherit;
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s, background .15s;
+  white-space: nowrap;
+}
+button:hover:not(:disabled) { opacity: .85; }
+button:disabled { opacity: .35; cursor: default; }
+button.sec {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+button.sec:hover:not(:disabled) { border-color: var(--accent); opacity: 1; }
+
+/* ── Status bar ──────────────────────────────────────────────────────────── */
+.status {
+  padding: .7rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: .85rem;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.status.ok  { border-color: #166534; color: #4ade80; }
+.status.err { border-color: #7f1d1d; color: #f87171; }
+
+/* ── Spinner ────────────────────────────────────────────────────────────── */
+.spin {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Cards grid ─────────────────────────────────────────────────────────── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+@media (max-width: 860px) { .cards-grid { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--model-color, var(--border));
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.card-header {
+  background: color-mix(in srgb, var(--model-color) 12%, transparent);
+  border-bottom: 1px solid var(--model-color);
+  padding: .65rem 1rem;
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--model-color);
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.card-header .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--model-color);
+  flex-shrink: 0;
+}
+
+.card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+
+/* ── Phase blocks ────────────────────────────────────────────────────────── */
+.phase { display: flex; flex-direction: column; gap: .4rem; }
+
+.phase-label {
+  font-size: .65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+}
+
+.phase-text {
+  font-size: .85rem;
+  line-height: 1.65;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.phase-text.loading {
+  color: var(--muted);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.phase-text.covered {
+  color: var(--muted);
+  text-align: center;
+  padding: 1.2rem;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  font-size: .8rem;
+  letter-spacing: .02em;
+}
+.phase-text.err { color: #f87171; font-size: .8rem; }
+
+.phase-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+/* ── Debate action row ───────────────────────────────────────────────────── */
+.debate-actions { display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 2rem; }
+
+/* ── History ─────────────────────────────────────────────────────────────── */
+.history-section {
+  border-top: 1px solid var(--border);
+  padding-top: 1.75rem;
+  margin-top: 1rem;
+}
+.history-section h2 {
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+.history-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .9rem 1.1rem;
+  margin-bottom: .6rem;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.history-item:hover { border-color: var(--accent); }
+.history-q { font-size: .9rem; font-weight: 600; margin-bottom: .3rem; }
+.history-meta { font-size: .75rem; color: var(--muted); }
+
+/* ── Utilities ───────────────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎭 System Debat Modeli</h1>
+  <span class="sub">α Gemini · β Qwen · γ Groq</span>
+  <a href="http://localhost:8080" class="back">← Playground</a>
+</header>
+
+<main>
+  <!-- Question -->
+  <div class="q-section">
+    <textarea id="q-input"
+      placeholder="Wpisz pytanie debaty, np. 'Czym jest świadomość?' lub 'Czy AI może być twórcza?'"
+      onkeydown="if(event.ctrlKey&&event.key==='Enter')askFirst()"></textarea>
+    <div class="btn-row">
+      <button id="btn-ask" onclick="askFirst()">▶ Zadaj pytanie</button>
+      <button class="sec" onclick="clearAll()">✕ Wyczyść</button>
+      <span style="font-size:.75rem;color:var(--muted);margin-left:.25rem">Ctrl+Enter</span>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div id="status-bar" class="status hidden"></div>
+
+  <!-- Debate section -->
+  <div id="debate-section" class="hidden">
+    <div class="cards-grid" id="cards-grid"></div>
+    <div class="debate-actions">
+      <button id="btn-reveal" onclick="revealFirst()" disabled>🃏 Odkryj karty</button>
+      <button id="btn-react"  onclick="askReact()"   disabled>⚡ Uruchom reakcje</button>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div id="history-section" class="history-section hidden">
+    <h2>Historia rund</h2>
+    <div id="history-list"></div>
+  </div>
+</main>
+
+<script>
+// ── Konfiguracja modeli (musi pasować do config.py) ───────────────────────
+const MODELS = [
+  { id: 'alpha', name: 'Model α', color: '#7C3AED' },
+  { id: 'beta',  name: 'Model β', color: '#0EA5E9' },
+  { id: 'gamma', name: 'Model γ', color: '#10B981' },
+];
+
+// ── Stan aplikacji ────────────────────────────────────────────────────────
+let currentQuestion = '';
+let firstResults    = [];
+let rounds          = [];
+
+// ── Budowanie kart ────────────────────────────────────────────────────────
+function buildCards() {
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = MODELS.map(m => `
+    <div class="card" id="card-${m.id}" style="--model-color:${m.color}">
+      <div class="card-header">
+        <span class="dot"></span>
+        ${m.name}
+      </div>
+      <div class="card-body">
+        <div class="phase" id="phase-first-${m.id}">
+          <div class="phase-label">Pierwsza odpowiedź</div>
+          <div class="phase-text loading" id="text-first-${m.id}">
+            <span class="spin"></span> myśli…
+          </div>
+        </div>
+        <div class="phase hidden" id="phase-react-${m.id}">
+          <hr class="phase-divider">
+          <div class="phase-label">Reakcja</div>
+          <div class="phase-text loading" id="text-react-${m.id}">
+            <span class="spin"></span> myśli…
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Faza 1: Pierwsze odpowiedzi ───────────────────────────────────────────
+async function askFirst() {
+  const q = document.getElementById('q-input').value.trim();
+  if (!q) return;
+
+  currentQuestion = q;
+  firstResults    = [];
+
+  setStatus('loading', 'Pytam modele — może potrwać kilka sekund…');
+  buildCards();
+  document.getElementById('debate-section').classList.remove('hidden');
+  document.getElementById('btn-reveal').disabled = true;
+  document.getElementById('btn-react').disabled  = true;
+
+  const btnAsk = document.getElementById('btn-ask');
+  btnAsk.disabled = true;
+
+  try {
+    const res = await fetch('/api/debate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q, phases: ['first'] }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    const data = await res.json();
+    firstResults = data.first || [];
+
+    // Pokaż stan "zakryte"
+    const anyOk = firstResults.some(r => r.ok);
+    firstResults.forEach(r => {
+      const el = document.getElementById(`text-first-${r.model_id}`);
+      if (!el) return;
+      if (r.ok) {
+        el.className = 'phase-text covered';
+        el.textContent = '🃏 Zakryte';
+      } else {
+        el.className = 'phase-text err';
+        el.textContent = '❌ ' + r.error;
+      }
+    });
+
+    if (anyOk) {
+      setStatus('ok', '✅ Modele odpowiedziały. Kliknij "Odkryj karty" aby zobaczyć odpowiedzi.');
+      document.getElementById('btn-reveal').disabled = false;
+    } else {
+      setStatus('err', '❌ Wszystkie modele zwróciły błąd. Sprawdź klucze API w .env.');
+    }
+
+  } catch (e) {
+    setStatus('err', '❌ ' + e.message);
+  } finally {
+    btnAsk.disabled = false;
+  }
+}
+
+// ── Odkryj karty ──────────────────────────────────────────────────────────
+function revealFirst() {
+  firstResults.forEach(r => {
+    const el = document.getElementById(`text-first-${r.model_id}`);
+    if (!el) return;
+    el.className = r.ok ? 'phase-text' : 'phase-text err';
+    el.textContent = r.ok ? r.text : '❌ ' + r.error;
+  });
+  document.getElementById('btn-reveal').disabled = true;
+  document.getElementById('btn-react').disabled  = false;
+  setStatus('ok', 'Odpowiedzi odkryte. Kliknij "Uruchom reakcje" aby modele skomentowały swoje stanowiska.');
+}
+
+// ── Faza 2: Reakcje ───────────────────────────────────────────────────────
+async function askReact() {
+  const btnReact = document.getElementById('btn-react');
+  btnReact.disabled = true;
+
+  // Pokaż ładowanie reakcji
+  MODELS.forEach(m => {
+    document.getElementById(`phase-react-${m.id}`)?.classList.remove('hidden');
+    const el = document.getElementById(`text-react-${m.id}`);
+    if (el) {
+      el.className = 'phase-text loading';
+      el.innerHTML = '<span class="spin"></span> myśli…';
+    }
+  });
+
+  setStatus('loading', 'Modele reagują na odpowiedzi innych — może potrwać kilka sekund…');
+
+  try {
+    const res = await fetch('/api/debate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question: currentQuestion,
+        phases: ['react'],
+        first_results: firstResults,
+      }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    const data = await res.json();
+    const reactResults = data.react || [];
+
+    reactResults.forEach(r => {
+      const el = document.getElementById(`text-react-${r.model_id}`);
+      if (!el) return;
+      el.className = r.ok ? 'phase-text' : 'phase-text err';
+      el.textContent = r.ok ? r.text : '❌ ' + r.error;
+    });
+
+    // Zapisz do historii
+    rounds.push({ question: currentQuestion, first: firstResults, react: reactResults });
+    renderHistory();
+
+    setStatus('ok', `✅ Runda zakończona (${rounds.length}). Możesz zadać nowe pytanie.`);
+
+  } catch (e) {
+    setStatus('err', '❌ ' + e.message);
+    btnReact.disabled = false;
+  }
+}
+
+// ── Historia rund ─────────────────────────────────────────────────────────
+function renderHistory() {
+  const section = document.getElementById('history-section');
+  const list    = document.getElementById('history-list');
+  section.classList.remove('hidden');
+
+  list.innerHTML = rounds.slice().reverse().map((rnd, i) => {
+    const n    = rounds.length - i;
+    const okF  = rnd.first.filter(r => r.ok).length;
+    const okR  = rnd.react?.filter(r => r.ok).length ?? 0;
+    return `
+      <div class="history-item" onclick="loadRound(${rounds.length - 1 - i})">
+        <div class="history-q">Runda ${n}: ${escHtml(rnd.question)}</div>
+        <div class="history-meta">${okF} odpowiedzi · ${okR} reakcji</div>
+      </div>`;
+  }).join('');
+}
+
+function loadRound(idx) {
+  const rnd = rounds[idx];
+  if (!rnd) return;
+
+  currentQuestion = rnd.question;
+  firstResults    = rnd.first;
+
+  document.getElementById('q-input').value = rnd.question;
+  buildCards();
+  document.getElementById('debate-section').classList.remove('hidden');
+
+  // Pokaż pierwsze odpowiedzi
+  rnd.first.forEach(r => {
+    const el = document.getElementById(`text-first-${r.model_id}`);
+    if (!el) return;
+    el.className = r.ok ? 'phase-text' : 'phase-text err';
+    el.textContent = r.ok ? r.text : '❌ ' + r.error;
+  });
+
+  // Pokaż reakcje jeśli były
+  if (rnd.react?.length) {
+    rnd.react.forEach(r => {
+      document.getElementById(`phase-react-${r.model_id}`)?.classList.remove('hidden');
+      const el = document.getElementById(`text-react-${r.model_id}`);
+      if (!el) return;
+      el.className = r.ok ? 'phase-text' : 'phase-text err';
+      el.textContent = r.ok ? r.text : '❌ ' + r.error;
+    });
+  }
+
+  document.getElementById('btn-reveal').disabled = true;
+  document.getElementById('btn-react').disabled  = true;
+  setStatus('ok', `Załadowano rundę ${idx + 1} z historii.`);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Wyczyść ───────────────────────────────────────────────────────────────
+function clearAll() {
+  document.getElementById('q-input').value = '';
+  document.getElementById('debate-section').classList.add('hidden');
+  document.getElementById('status-bar').classList.add('hidden');
+  currentQuestion = '';
+  firstResults    = [];
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function setStatus(type, msg) {
+  const el = document.getElementById('status-bar');
+  el.classList.remove('hidden', 'ok', 'err');
+  if (type === 'ok')      el.classList.add('ok');
+  else if (type === 'err') el.classList.add('err');
+  el.innerHTML = type === 'loading'
+    ? `<span class="spin"></span> ${escHtml(msg)}`
+    : escHtml(msg);
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

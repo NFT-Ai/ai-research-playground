@@ -1,0 +1,16 @@
+services:
+  debata:
+    build: .
+    env_file: .env
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.debata.rule=Host(`debata.srv1041521.hstgr.cloud`)"
+      - "traefik.http.routers.debata.entrypoints=websecure"
+      - "traefik.http.routers.debata.tls.certresolver=letsencrypt"
+      - "traefik.http.services.debata.loadbalancer.server.port=8000"
+
+networks:
+  default:
+    external: true
+    name: web

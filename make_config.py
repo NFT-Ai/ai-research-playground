@@ -29,6 +29,7 @@ keys = {
         "groq":  env("Groq/.env", "GROQ_API_KEY"),
         "mistralai":  env("MistralAI/.env", "MISTRALAI_API_KEY"),
         "cerebras":  env("Cerebras/.env", "CEREBRAS_API_KEY"),
+        "fireworksai":  env("FireworksAI/.env", "FIREWORKSAI_API_KEY"),
 }
 
 out = os.path.join(ROOT, "keys.json")
